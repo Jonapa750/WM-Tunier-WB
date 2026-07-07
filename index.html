@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🏆 Emoji Fußball Turnier Simulator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 40px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+
+        .stage-title {
+            text-align: center;
+            color: #667eea;
+            font-size: 1.8em;
+            margin-bottom: 20px;
+        }
+
+        /* ===== PHASE 1: Eingabephase ===== */
+        .input-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .input-field {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .input-field label {
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #555;
+            font-size: 0.9em;
+        }
+
+        .input-field input {
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+
+        .input-field input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 5px rgba(102, 126, 234, 0.3);
+        }
+
+        .input-field input.filled {
+            border-color: #4caf50;
+        }
+
+        .next-btn {
+            display: block;
+            margin: 30px auto;
+            padding: 15px 50px;
+            font-size: 1.1em;
+            font-weight: bold;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            background-color: #bbb;
+            color: #666;
+        }
+
+        .next-btn.active {
+            background-color: #4caf50;
+            color: white;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);
+        }
+
+        .next-btn.active:hover {
+            background-color: #45a049;
+            transform: translateY(-2px);
+        }
+
+        .next-btn:disabled {
+            cursor: not-allowed;
+        }
+
+        /* ===== PHASE 2: Gruppenphase ===== */
+        .groups-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .group-box {
+            background: #f5f5f5;
+            border-left: 5px solid #667eea;
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        .group-title {
+            font-weight: bold;
+            font-size: 1.3em;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .matches-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .match {
+            background: white;
+            padding: 12px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border: 1px solid #ddd;
+        }
+
+        .match-team {
+            font-size: 1.5em;
+            flex: 0 0 auto;
+        }
+
+        .match-score {
+            display: flex;
+            gap: 8px;
+            flex: 1;
+        }
+
+        .match-score input {
+            width: 50px;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1em;
+            text-align: center;
+        }
+
+        .match-score input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .match-vs {
+            font-weight: bold;
+            color: #999;
+            flex: 0 0 auto;
+        }
+
+        .group-table {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid #ddd;
+        }
+
+        .group-table table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .group-table th {
+            background: #667eea;
+            color: white;
+            padding: 10px;
+            text-align: left;
+            font-weight: bold;
+        }
+
+        .group-table td {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            font-size: 0.9em;
+        }
+
+        .group-table tr:hover {
+            background: #f9f9f9;
+        }
+
+        /* ===== KNOCKOUT PHASE ===== */
+        .knockout-container {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 30px;
+            overflow-x: auto;
+            padding: 10px 0;
+        }
+
+        .knockout-round {
+            flex: 1;
+            min-width: 280px;
+        }
+
+        .round-title {
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 15px;
+            color: #667eea;
+            font-size: 1.1em;
+        }
+
+        .knockout-matches {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+
+        .knockout-match {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+        }
+
+        .knockout-match-team {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .knockout-match-team:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .knockout-team-emoji {
+            font-size: 1.3em;
+        }
+
+        .knockout-score {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .knockout-score input {
+            width: 45px;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            text-align: center;
+        }
+
+        /* ===== TURNIERBAUM ===== */
+        .tournament-tree {
+            background: #f5f5f5;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            border: 2px solid #667eea;
+        }
+
+        .tree-row {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 30px;
+            align-items: center;
+        }
+
+        .tree-match {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border: 2px solid #667eea;
+            text-align: center;
+            min-width: 120px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .tree-match-team {
+            font-size: 1.5em;
+            padding: 5px 0;
+        }
+
+        .tree-vs {
+            color: #999;
+            font-size: 0.8em;
+            padding: 5px 0;
+        }
+
+        .tree-winner {
+            color: #4caf50;
+            font-weight: bold;
+            font-size: 1.2em;
+            padding: 5px 0;
+        }
+
+        /* ===== FINISH SCREEN ===== */
+        .finish-screen {
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .winner-podium {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin: 40px 0;
+            flex-wrap: wrap;
+        }
+
+        .podium-place {
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .podium-medal {
+            font-size: 3em;
+            margin-bottom: 10px;
+        }
+
+        .podium-emoji {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .podium-label {
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .podium-text {
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        /* ===== HIDDEN SECTIONS ===== */
+        .hidden {
+            display: none !important;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 1.8em;
+                margin-bottom: 20px;
+            }
+
+            .input-section {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
+            }
+
+            .groups-container {
+                grid-template-columns: 1fr;
+            }
+
+            .match {
+                flex-wrap: wrap;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏆 Emoji Fußball Turnier Simulator</h1>
+
+        <!-- PHASE 1: Input Phase -->
+        <div id="inputPhase" class="phase">
+            <div class="stage-title">Schritt 1: Geben Sie 32 Teams ein (Emojis oder Text)</div>
+            <div class="input-section" id="inputSection"></div>
+            <button class="next-btn" id="inputNextBtn" disabled>Weiter →</button>
+        </div>
+
+        <!-- PHASE 2: Group Phase -->
+        <div id="groupPhase" class="phase hidden">
+            <div class="stage-title">Schritt 2: Gruppenphase (3 Spieltage)</div>
+            <div id="groupStage"></div>
+            <button class="next-btn" id="groupNextBtn" disabled>Weiter zum Achtelfinale →</button>
+        </div>
+
+        <!-- PHASE 3: Knockout Phase -->
+        <div id="knockoutPhase" class="phase hidden">
+            <div class="stage-title" id="knockoutTitle">Achtelfinale</div>
+            <div id="knockoutStage"></div>
+            <button class="next-btn" id="knockoutNextBtn" disabled>Weiter →</button>
+        </div>
+
+        <!-- PHASE 4: Final Screen -->
+        <div id="finishPhase" class="phase hidden">
+            <div class="finish-screen">
+                <div class="stage-title">🎉 Turnier Abgeschlossen! 🎉</div>
+                <div id="podium"></div>
+                <button class="next-btn active" id="restartBtn">🔄 Erneut spielen</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class TournamentSimulator {
+            constructor() {
+                this.teams = [];
+                this.groups = {};
+                this.currentRound = 0;
+                this.knockoutRounds = ['Achtelfinale', 'Viertelfinale', 'Halbfinale', 'Spiel um Platz 3', 'Finale'];
+                this.knockoutMatches = [];
+                this.results = {};
+                this.groupMatches = {};
+                this.init();
+            }
+
+            init() {
+                this.setupInputPhase();
+            }
+
+            setupInputPhase() {
+                const inputSection = document.getElementById('inputSection');
+                inputSection.innerHTML = '';
+
+                for (let i = 0; i < 32; i++) {
+                    const div = document.createElement('div');
+                    div.className = 'input-field';
+                    div.innerHTML = `
+                        <label>Team ${i + 1}</label>
+                        <input type="text" id="team-${i}" placeholder="z.B. 🇩🇪 oder Deutschland" maxlength="20">
+                    `;
+                    inputSection.appendChild(div);
+                }
+
+                document.getElementById('inputNextBtn').addEventListener('click', () => this.proceedToGroups());
+                this.setupInputValidation();
+            }
+
+            setupInputValidation() {
+                const inputs = document.querySelectorAll('#inputSection input');
+                inputs.forEach(input => {
+                    input.addEventListener('input', () => {
+                        this.validateAllInputs();
+                    });
+                });
+            }
+
+            validateAllInputs() {
+                const inputs = document.querySelectorAll('#inputSection input');
+                let allFilled = true;
+
+                inputs.forEach(input => {
+                    if (input.value.trim() === '') {
+                        allFilled = false;
+                        input.classList.remove('filled');
+                    } else {
+                        input.classList.add('filled');
+                    }
+                });
+
+                const btn = document.getElementById('inputNextBtn');
+                if (allFilled) {
+                    btn.classList.add('active');
+                    btn.disabled = false;
+                } else {
+                    btn.classList.remove('active');
+                    btn.disabled = true;
+                }
+            }
+
+            proceedToGroups() {
+                // Collect teams
+                const inputs = document.querySelectorAll('#inputSection input');
+                this.teams = Array.from(inputs).map(input => input.value.trim());
+
+                // Shuffle teams
+                const shuffled = [...this.teams].sort(() => Math.random() - 0.5);
+
+                // Create groups
+                const groupLetters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
+                groupLetters.forEach((letter, idx) => {
+                    this.groups[letter] = {
+                        name: letter,
+                        teams: shuffled.slice(idx * 4, (idx + 1) * 4),
+                        matches: [],
+                        standings: []
+                    };
+                    this.initializeStandings(letter);
+                    this.generateGroupMatches(letter);
+                });
+
+                this.showGroupPhase();
+            }
+
+            initializeStandings(groupLetter) {
+                this.groups[groupLetter].standings = this.groups[groupLetter].teams.map(team => ({
+                    team,
+                    played: 0,
+                    wins: 0,
+                    draws: 0,
+                    losses: 0,
+                    goals: 0,
+                    conceded: 0,
+                    points: 0
+                }));
+            }
+
+            generateGroupMatches(groupLetter) {
+                const teams = this.groups[groupLetter].teams;
+                const matches = [];
+
+                for (let day = 0; day < 3; day++) {
+                    for (let i = 0; i < 2; i++) {
+                        const idx1 = (day + i) % 4;
+                        const idx2 = (day + i + 2) % 4;
+                        if (idx1 < idx2) {
+                            matches.push({
+                                day: day + 1,
+                                team1: teams[idx1],
+                                team2: teams[idx2],
+                                score1: null,
+                                score2: null,
+                                completed: false
+                            });
+                        }
+                    }
+                }
+
+                this.groups[groupLetter].matches = matches;
+            }
+
+            showGroupPhase() {
+                document.getElementById('inputPhase').classList.add('hidden');
+                document.getElementById('groupPhase').classList.remove('hidden');
+
+                const groupStage = document.getElementById('groupStage');
+                groupStage.innerHTML = '';
+
+                const groupLetters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
+                groupLetters.forEach(letter => {
+                    const groupBox = document.createElement('div');
+                    groupBox.className = 'group-box';
+                    groupBox.id = `group-${letter}`;
+                    groupBox.innerHTML = `
+                        <div class="group-title">Gruppe ${letter}</div>
+                        <div class="matches-list" id="matches-${letter}"></div>
+                        <div class="group-table" id="table-${letter}"></div>
+                    `;
+                    groupStage.appendChild(groupBox);
+                });
+
+                this.renderGroupPhase();
+                document.getElementById('groupNextBtn').addEventListener('click', () => this.proceedToKnockout());
+            }
+
+            renderGroupPhase() {
+                const groupLetters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
+                groupLetters.forEach(letter => {
+                    this.renderGroupMatches(letter);
+                    this.updateGroupTable(letter);
+                });
+            }
+
+            renderGroupMatches(groupLetter) {
+                const matchesContainer = document.getElementById(`matches-${groupLetter}`);
+                const matches = this.groups[groupLetter].matches;
+                matchesContainer.innerHTML = '';
+
+                matches.forEach((match, idx) => {
+                    const matchDiv = document.createElement('div');
+                    matchDiv.className = 'match';
+                    matchDiv.innerHTML = `
+                        <div class="match-team">${match.team1}</div>
+                        <div class="match-score">
+                            <input type="number" min="0" max="99" id="score-${groupLetter}-${idx}-1" 
+                                value="${match.score1 !== null ? match.score1 : ''}" 
+                                placeholder="0">
+                            <span class="match-vs">vs</span>
+                            <input type="number" min="0" max="99" id="score-${groupLetter}-${idx}-2" 
+                                value="${match.score2 !== null ? match.score2 : ''}" 
+                                placeholder="0">
+                        </div>
+                        <div class="match-team">${match.team2}</div>
+                    `;
+
+                    const input1 = matchDiv.querySelector(`#score-${groupLetter}-${idx}-1`);
+                    const input2 = matchDiv.querySelector(`#score-${groupLetter}-${idx}-2`);
+
+                    input1.addEventListener('input', () => this.updateMatchScore(groupLetter, idx, input1, input2));
+                    input2.addEventListener('input', () => this.updateMatchScore(groupLetter, idx, input1, input2));
+
+                    matchesContainer.appendChild(matchDiv);
+                });
+            }
+
+            updateMatchScore(groupLetter, matchIdx, input1, input2) {
+                const score1 = input1.value === '' ? null : parseInt(input1.value);
+                const score2 = input2.value === '' ? null : parseInt(input2.value);
+
+                if (score1 !== null && score2 !== null) {
+                    this.groups[groupLetter].matches[matchIdx].score1 = score1;
+                    this.groups[groupLetter].matches[matchIdx].score2 = score2;
+                    this.calculateGroupStandings(groupLetter);
+                    this.updateGroupTable(groupLetter);
+                    this.checkGroupPhaseComplete();
+                }
+            }
+
+            calculateGroupStandings(groupLetter) {
+                const standings = this.groups[groupLetter].standings.map(s => ({ ...s, played: 0, wins: 0, draws: 0, losses: 0, goals: 0, conceded: 0, points: 0 }));
+                
+                this.groups[groupLetter].matches.forEach(match => {
+                    if (match.score1 !== null && match.score2 !== null) {
+                        const team1Idx = standings.findIndex(s => s.team === match.team1);
+                        const team2Idx = standings.findIndex(s => s.team === match.team2);
+
+                        standings[team1Idx].played++;
+                        standings[team2Idx].played++;
+                        standings[team1Idx].goals += match.score1;
+                        standings[team1Idx].conceded += match.score2;
+                        standings[team2Idx].goals += match.score2;
+                        standings[team2Idx].conceded += match.score1;
+
+                        if (match.score1 > match.score2) {
+                            standings[team1Idx].wins++;
+                            standings[team1Idx].points += 3;
+                            standings[team2Idx].losses++;
+                        } else if (match.score1 < match.score2) {
+                            standings[team2Idx].wins++;
+                            standings[team2Idx].points += 3;
+                            standings[team1Idx].losses++;
+                        } else {
+                            standings[team1Idx].draws++;
+                            standings[team2Idx].draws++;
+                            standings[team1Idx].points += 1;
+                            standings[team2Idx].points += 1;
+                        }
+                    }
+                });
+
+                standings.sort((a, b) => {
+                    if (b.points !== a.points) return b.points - a.points;
+                    return (b.goals - b.conceded) - (a.goals - a.conceded);
+                });
+
+                this.groups[groupLetter].standings = standings;
+            }
+
+            updateGroupTable(groupLetter) {
+                const tableContainer = document.getElementById(`table-${groupLetter}`);
+                const standings = this.groups[groupLetter].standings;
+
+                let html = `
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Team</th>
+                                <th>Sp</th>
+                                <th>S</th>
+                                <th>U</th>
+                                <th>N</th>
+                                <th>Tore</th>
+                                <th>Diff</th>
+                                <th>Pkt</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+
+                standings.forEach((s, idx) => {
+                    const diff = s.goals - s.conceded;
+                    html += `
+                        <tr>
+                            <td>${s.team}</td>
+                            <td>${s.played}</td>
+                            <td>${s.wins}</td>
+                            <td>${s.draws}</td>
+                            <td>${s.losses}</td>
+                            <td>${s.goals}:${s.conceded}</td>
+                            <td>${diff >= 0 ? '+' : ''}${diff}</td>
+                            <td><strong>${s.points}</strong></td>
+                        </tr>
+                    `;
+                });
+
+                html += `
+                        </tbody>
+                    </table>
+                `;
+
+                tableContainer.innerHTML = html;
+            }
+
+            checkGroupPhaseComplete() {
+                let allComplete = true;
+                const groupLetters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
+
+                groupLetters.forEach(letter => {
+                    const allMatches = this.groups[letter].matches.every(m => m.score1 !== null && m.score2 !== null);
+                    if (!allMatches) allComplete = false;
+                });
+
+                const btn = document.getElementById('groupNextBtn');
+                if (allComplete) {
+                    btn.classList.add('active');
+                    btn.disabled = false;
+                }
+            }
+
+            proceedToKnockout() {
+                this.currentRound = 0;
+                this.generateKnockoutMatches();
+                this.showKnockoutPhase();
+            }
+
+            generateKnockoutMatches() {
+                const groupLetters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
+                const qualified = [];
+
+                groupLetters.forEach(letter => {
+                    qualified.push(this.groups[letter].standings[0]);
+                    qualified.push(this.groups[letter].standings[1]);
+                });
+
+                // Shuffle for random pairings
+                const shuffled = qualified.sort(() => Math.random() - 0.5);
+
+                this.knockoutMatches = [];
+                for (let i = 0; i < 16; i += 2) {
+                    this.knockoutMatches.push({
+                        team1: shuffled[i].team,
+                        team2: shuffled[i + 1].team,
+                        score1: null,
+                        score2: null,
+                        winner: null,
+                        completed: false
+                    });
+                }
+            }
+
+            showKnockoutPhase() {
+                document.getElementById('groupPhase').classList.add('hidden');
+                document.getElementById('knockoutPhase').classList.remove('hidden');
+
+                this.renderKnockoutRound();
+                document.getElementById('knockoutNextBtn').addEventListener('click', () => this.proceedNextKnockoutRound());
+            }
+
+            renderKnockoutRound() {
+                const knockoutStage = document.getElementById('knockoutStage');
+                knockoutStage.innerHTML = '';
+
+                document.getElementById('knockoutTitle').textContent = this.knockoutRounds[this.currentRound];
+
+                const roundDiv = document.createElement('div');
+                roundDiv.className = 'knockout-round';
+
+                const matches = this.currentRound === 0 ? this.knockoutMatches : this.knockoutMatches;
+                
+                this.knockoutMatches.forEach((match, idx) => {
+                    const matchDiv = document.createElement('div');
+                    matchDiv.className = 'knockout-match';
+                    matchDiv.innerHTML = `
+                        <div class="knockout-match-team">
+                            <span class="knockout-team-emoji">${match.team1}</span>
+                            <div class="knockout-score">
+                                <input type="number" min="0" max="99" id="ko-score-${idx}-1" 
+                                    value="${match.score1 !== null ? match.score1 : ''}" 
+                                    placeholder="0">
+                            </div>
+                        </div>
+                        <div class="knockout-match-team">
+                            <span class="knockout-team-emoji">${match.team2}</span>
+                            <div class="knockout-score">
+                                <input type="number" min="0" max="99" id="ko-score-${idx}-2" 
+                                    value="${match.score2 !== null ? match.score2 : ''}" 
+                                    placeholder="0">
+                            </div>
+                        </div>
+                    `;
+
+                    const input1 = matchDiv.querySelector(`#ko-score-${idx}-1`);
+                    const input2 = matchDiv.querySelector(`#ko-score-${idx}-2`);
+
+                    input1.addEventListener('input', () => this.updateKnockoutScore(idx, input1, input2));
+                    input2.addEventListener('input', () => this.updateKnockoutScore(idx, input1, input2));
+
+                    roundDiv.appendChild(matchDiv);
+                });
+
+                knockoutStage.appendChild(roundDiv);
+            }
+
+            updateKnockoutScore(matchIdx, input1, input2) {
+                const score1 = input1.value === '' ? null : parseInt(input1.value);
+                const score2 = input2.value === '' ? null : parseInt(input2.value);
+
+                if (score1 !== null && score2 !== null) {
+                    this.knockoutMatches[matchIdx].score1 = score1;
+                    this.knockoutMatches[matchIdx].score2 = score2;
+                    this.knockoutMatches[matchIdx].winner = score1 > score2 ? 0 : 1;
+                    this.checkKnockoutRoundComplete();
+                }
+            }
+
+            checkKnockoutRoundComplete() {
+                const allComplete = this.knockoutMatches.every(m => m.score1 !== null && m.score2 !== null);
+                const btn = document.getElementById('knockoutNextBtn');
+                
+                if (allComplete) {
+                    btn.classList.add('active');
+                    btn.disabled = false;
+                } else {
+                    btn.classList.remove('active');
+                    btn.disabled = true;
+                }
+            }
+
+            proceedNextKnockoutRound() {
+                // Prepare next round
+                const winners = this.knockoutMatches.map((match, idx) => {
+                    const team = match.winner === 0 ? match.team1 : match.team2;
+                    return { team, score: Math.max(match.score1, match.score2) };
+                });
+
+                this.currentRound++;
+
+                if (this.currentRound < 4) {
+                    // Next knockout round
+                    const nextMatches = [];
+                    for (let i = 0; i < winners.length; i += 2) {
+                        nextMatches.push({
+                            team1: winners[i].team,
+                            team2: winners[i + 1].team,
+                            score1: null,
+                            score2: null,
+                            winner: null,
+                            completed: false
+                        });
+                    }
+                    this.knockoutMatches = nextMatches;
+                    this.renderKnockoutRound();
+                    document.getElementById('knockoutNextBtn').disabled = true;
+                    document.getElementById('knockoutNextBtn').classList.remove('active');
+                } else if (this.currentRound === 4) {
+                    // After Finale
+                    this.showFinishPhase();
+                }
+            }
+
+            showFinishPhase() {
+                // Get final rankings
+                const final = this.knockoutMatches[0];
+                const bronze = this.knockoutMatches[1]; // This should be the 3rd place match
+
+                // Find bronze medal winner - simplified for now
+                const thirdPlace = this.knockoutMatches.length > 1 ? this.knockoutMatches[1] : final;
+
+                const podium = document.getElementById('podium');
+                podium.innerHTML = `
+                    <div class="winner-podium">
+                        <div class="podium-place">
+                            <div class="podium-medal">🥇</div>
+                            <div class="podium-emoji">${final.score1 > final.score2 ? final.team1 : final.team2}</div>
+                            <div class="podium-label">1. Platz</div>
+                            <div class="podium-text">Weltmeister</div>
+                        </div>
+                        <div class="podium-place">
+                            <div class="podium-medal">🥈</div>
+                            <div class="podium-emoji">${final.score1 > final.score2 ? final.team2 : final.team1}</div>
+                            <div class="podium-label">2. Platz</div>
+                            <div class="podium-text">Finalist</div>
+                        </div>
+                        <div class="podium-place">
+                            <div class="podium-medal">🥉</div>
+                            <div class="podium-emoji">${thirdPlace.score1 > thirdPlace.score2 ? thirdPlace.team1 : thirdPlace.team2}</div>
+                            <div class="podium-label">3. Platz</div>
+                            <div class="podium-text">Bronze</div>
+                        </div>
+                    </div>
+                `;
+
+                document.getElementById('knockoutPhase').classList.add('hidden');
+                document.getElementById('finishPhase').classList.remove('hidden');
+
+                document.getElementById('restartBtn').addEventListener('click', () => this.restart());
+            }
+
+            restart() {
+                this.teams = [];
+                this.groups = {};
+                this.currentRound = 0;
+                this.knockoutMatches = [];
+                this.results = {};
+                this.groupMatches = {};
+
+                document.getElementById('inputPhase').classList.remove('hidden');
+                document.getElementById('groupPhase').classList.add('hidden');
+                document.getElementById('knockoutPhase').classList.add('hidden');
+                document.getElementById('finishPhase').classList.add('hidden');
+
+                this.init();
+            }
+        }
+
+        // Initialize the tournament simulator
+        new TournamentSimulator();
+    </script>
+</body>
+</html>
